@@ -15,26 +15,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtFilter;
-    private final AuthService authService;
+    private AuthService authService;
 
-    public SecurityConfig(JwtAuthFilter jwtFilter, AuthService authService) {
+    public SecurityConfig(JwtAuthFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
-        this.authService = authService;
     }
 
-    @Bean
+   @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http.csrf().disable()
-                .authorizeHttpRequests()
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()
-                .and()
-                .userDetailsService(authService)
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+            )
+            .userDetailsService(authService) // use the field here
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

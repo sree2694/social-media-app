@@ -31,4 +31,9 @@ public class AuthService implements UserDetailsService {
                 .roles(user.getRole())
                 .build();
     }
+
+    public User getUserByUsername(String username) {
+    return repo.findByUsername(username).orElseThrow();
+}
+
 }
