@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import PostForm from '../components/feed/PostForm';
+import PostCard from '../components/feed/PostCard';
+
+import {
+  Box,
+  Typography,
+  Fade,
+  Container,
+  Divider,
+  CircularProgress,
+} from '@mui/material';
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
-  const [newPost, setNewPost] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  // Fetch posts on load
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -13,54 +23,62 @@ const HomePage = () => {
   const fetchPosts = async () => {
     try {
       const res = await api.get('/posts');
-      setPosts(res.data);
+      setPosts(res.data.reverse()); // newest first
     } catch (err) {
       console.error('Failed to fetch posts:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePostSubmit = async () => {
-    if (!newPost.trim()) return;
-    try {
-      await api.post('/posts', { content: newPost });
-      setNewPost('');
-      fetchPosts(); // reload after posting
-    } catch (err) {
-      console.error('Failed to post:', err);
-    }
+  const handleDeletePost = (id) => {
+    setPosts((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleUpdatePost = (updated) => {
+    setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  };
+
+  const handleNewPost = (post) => {
+    setPosts((prev) => [post, ...prev]);
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">News Feed</h1>
+    <Container maxWidth="sm">
+      <Fade in timeout={800}>
+        <Box sx={{ py: 4 }}>
+          <Typography variant="h4" fontWeight="bold" gutterBottom align="center">
+            📰 News Feed
+          </Typography>
 
-      <div className="mb-4">
-        <textarea
-          className="w-full p-2 border rounded mb-2"
-          placeholder="What's on your mind?"
-          value={newPost}
-          onChange={(e) => setNewPost(e.target.value)}
-        />
-        <button
-          onClick={handlePostSubmit}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Post
-        </button>
-      </div>
+          <PostForm onPost={handleNewPost} />
 
-      {posts.length > 0 ? (
-        posts.map((post) => (
-          <div key={post.id} className="border p-4 mb-4 rounded shadow">
-            <div className="font-semibold">{post.author}</div>
-            <div className="text-gray-700">{post.content}</div>
-            <div className="text-sm text-gray-400">{new Date(post.createdAt).toLocaleString()}</div>
-          </div>
-        ))
-      ) : (
-        <p>No posts yet.</p>
-      )}
-    </div>
+          <Divider sx={{ my: 3 }} />
+
+          {loading ? (
+            <Box display="flex" justifyContent="center" mt={4}>
+              <CircularProgress />
+            </Box>
+          ) : posts.length > 0 ? (
+            posts.map((post) => (
+              <Fade in key={post.id}>
+                <Box mb={3}>
+                  <PostCard
+                    post={post}
+                    onDelete={handleDeletePost}
+                    onUpdate={handleUpdatePost}
+                  />
+                </Box>
+              </Fade>
+            ))
+          ) : (
+            <Typography variant="body1" align="center" color="text.secondary">
+              No posts yet. Be the first to share something!
+            </Typography>
+          )}
+        </Box>
+      </Fade>
+    </Container>
   );
 };
 
