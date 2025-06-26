@@ -9,11 +9,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Post {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String author;
     private String content;
-    private LocalDateTime createdAt;
+    private String author;
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

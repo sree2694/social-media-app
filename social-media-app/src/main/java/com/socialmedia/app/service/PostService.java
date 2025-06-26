@@ -2,14 +2,18 @@ package com.socialmedia.app.service;
 
 import com.socialmedia.app.model.Post;
 import com.socialmedia.app.repository.PostRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class PostService {
-
+    
+    @Autowired
     private final PostRepository postRepository;
 
     public PostService(PostRepository postRepository) {
@@ -19,7 +23,8 @@ public class PostService {
     public List<Post> getAllPosts() {
         return postRepository.findAll();
     }
-
+    
+    @Transactional
     public Post createPost(String content, String author) {
         Post post = new Post();
         post.setAuthor(author);

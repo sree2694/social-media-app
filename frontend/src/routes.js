@@ -4,6 +4,7 @@ import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import ChatPage from './pages/ChatPage';
+import ChatRoom from './components/chat/ChatRoom';
 
 export default function AppRoutes() {
   return (
@@ -13,6 +14,7 @@ export default function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/profile/:username" element={<ProfilePage />} />
       <Route path="/chat" element={<ChatPage />} />
+      <Route path="/chat" element={<ChatRoom />} />
     </Routes>
   );
 }

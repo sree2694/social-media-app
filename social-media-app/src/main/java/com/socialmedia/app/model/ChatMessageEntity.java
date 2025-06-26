@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "chat_message_entity")
 public class ChatMessageEntity {
 
     @Id
@@ -22,5 +23,6 @@ public class ChatMessageEntity {
     @Enumerated(EnumType.STRING)
     private MessageType type;
 
-    private LocalDateTime timestamp;
+
+    private LocalDateTime timestamp = LocalDateTime.now();
 }

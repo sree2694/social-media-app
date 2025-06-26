@@ -1,32 +1,45 @@
 package com.socialmedia.app.controller;
 
 import com.socialmedia.app.dto.ChatMessage;
+import com.socialmedia.app.model.ChatMessageEntity;
+import com.socialmedia.app.repository.ChatMessageRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.time.LocalDateTime;
+
 @Controller
 public class ChatController {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
-    public ChatController(SimpMessagingTemplate messagingTemplate) {
-        this.messagingTemplate = messagingTemplate;
-    }
+    @Autowired
+    private ChatMessageRepository chatRepo;
 
-    @MessageMapping("/chat.send")
+    @MessageMapping("/chat.sendMessage") // maps to /app/chat.sendMessage
+    @SendTo("/topic/public") // not required if using messagingTemplate
     public void sendMessage(@Payload ChatMessage chatMessage) {
-        // Send to specific user (1-to-1)
-        messagingTemplate.convertAndSendToUser(
-                chatMessage.getRecipient(),
-                "/queue/messages",
-                chatMessage
-        );
+        // Save to DB
+        ChatMessageEntity msg = new ChatMessageEntity();
+        msg.setSender(chatMessage.getSender());
+        msg.setRecipient(chatMessage.getRecipient());
+        msg.setContent(chatMessage.getContent());
+        msg.setType(chatMessage.getType());
+        msg.setTimestamp(LocalDateTime.now());
+        chatRepo.save(msg);
+
+        // Send to recipient/topic
+        messagingTemplate.convertAndSend("/topic/public", chatMessage);
     }
 
-    @MessageMapping("/chat.broadcast")
-    @SendTo("/topic/public")
-    public ChatMessage broadcastMessage(@Payload ChatMessage message) {
-        return message;
+    @MessageMapping("/chat.addUser")
+    public void addUser(@Payload ChatMessage chatMessage) {
+        chatMessage.setContent(chatMessage.getSender() + " joined");
+        chatMessage.setType(ChatMessage.MessageType.JOIN);
+        messagingTemplate.convertAndSend("/topic/public", chatMessage);
     }
 }
