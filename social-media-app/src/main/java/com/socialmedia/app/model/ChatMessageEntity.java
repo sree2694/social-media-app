@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "chat_message_entity")
+@Builder
 public class ChatMessageEntity {
 
     @Id
@@ -24,5 +25,10 @@ public class ChatMessageEntity {
     private MessageType type;
 
 
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private LocalDateTime timestamp;
+
+    @PrePersist
+    public void onCreate() {
+        this.timestamp = LocalDateTime.now();
+    }
 }

@@ -14,4 +14,5 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, 
            "(m.sender = :user2 AND m.recipient = :user1) " +
            "ORDER BY m.timestamp ASC")
     List<ChatMessageEntity> findChatBetweenUsers(String user1, String user2);
+     List<ChatMessageEntity> findTop10BySenderAndRecipientOrderByTimestampDesc(String sender, String recipient);
 }

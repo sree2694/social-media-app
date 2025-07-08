@@ -3,6 +3,7 @@ package com.socialmedia.app.controller;
 import com.socialmedia.app.dto.ChatMessage;
 import com.socialmedia.app.model.ChatMessageEntity;
 import com.socialmedia.app.repository.ChatMessageRepository;
+import com.socialmedia.app.service.ChatService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.*;
@@ -19,6 +20,9 @@ public class ChatController {
 
     @Autowired
     private ChatMessageRepository chatRepo;
+
+    @Autowired
+    private ChatService chatService;
 
     @MessageMapping("/chat.sendMessage") // maps to /app/chat.sendMessage
     @SendTo("/topic/public") // not required if using messagingTemplate
@@ -42,4 +46,18 @@ public class ChatController {
         chatMessage.setType(ChatMessage.MessageType.JOIN);
         messagingTemplate.convertAndSend("/topic/public", chatMessage);
     }
+
+   @MessageMapping("/private-message")
+public void receivePrivateMessage(@Payload ChatMessage chatMessage) {
+    // Save and enrich message (timestamp)
+    ChatMessage saved = chatService.saveMessage(chatMessage);
+
+    // Send to recipient
+    messagingTemplate.convertAndSendToUser(
+            saved.getRecipient(),
+            "/queue/messages",
+            saved
+    );
+}
+
 }
